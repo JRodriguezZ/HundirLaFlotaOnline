@@ -1,6 +1,8 @@
 package elpuig.UDP;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -13,23 +15,40 @@ public class Servidor {
     MulticastSocket socket;
     InetAddress multicastIP;
     int port;
-    boolean continueRunning = true;
-    Velocitat simulator;
+    HundirLaFlota hundirLaFlota;
 
     public Servidor(int portValue, String strIp) throws IOException {
         socket = new MulticastSocket(portValue);
         multicastIP = InetAddress.getByName(strIp);
         port = portValue;
-        simulator = new Velocitat(100);
     }
 
-    public void runServer() throws IOException{
+    public void runServer() throws IOException {
         DatagramPacket packet;
-        byte [] sendingData;
+        byte[] recieveData;
+        byte[] sendingData;
 
-        while(continueRunning){
-            sendingData = ByteBuffer.allocate(4).putInt(simulator.agafaVelocitat()).array();
-            packet = new DatagramPacket(sendingData, sendingData.length,multicastIP, port);
+        hundirLaFlota.start();
+
+        System.out.println("Server is running...");
+//        while(hundirLaFlota.ganador == 0){
+//            hundirLaFlota.combate();
+//        }
+
+        while(continueRunning()){
+
+            //Recibir datos
+            recieveData = new byte[1024];
+            packet = new DatagramPacket(recieveData, recieveData.length);
+            socket.receive(packet);
+
+            String recieved = new String(packet.getData(), 0, packet.getLength());
+            System.out.println(recieved);
+
+
+            //Enviar datos
+            sendingData = processData(packet.getData(), packet.getLength());
+            packet = new DatagramPacket(sendingData, sendingData.length, packet.getAddress(), packet.getPort());
             socket.send(packet);
 
             try {
@@ -38,17 +57,42 @@ public class Servidor {
                 ex.getMessage();
             }
 
-
         }
+        System.out.println("Parando servidor.");
         socket.close();
+    }
+
+    private byte[] processData(byte[] data, int length) {
+        Jugada j = null;
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        try {
+            ObjectInputStream oin = new ObjectInputStream(in);
+            j = (Jugada) oin.readObject();
+            System.out.println("Jugada: " + j.nom + " " + j.posX + ", " + j.posY);
+
+//            if(!tauler.map_jugadors.containsKey(j.Nom)) tauler.map_jugadors.put(j.Nom, 1);
+//            else {
+//                //Si el judador ja esxiteix, actualitzem la quatitat de tirades
+//                int tirades = tauler.map_jugadors.get(j.Nom) + 1;
+//                tauler.map_jugadors.put(j.Nom, tirades);
+
+            // Comprovar la jugada
+            
+            } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean continueRunning() {
+        return hundirLaFlota.tablero.comprobarGanador() == 0;
     }
 
     public static void main(String[] args) throws IOException {
         //Canvieu la X.X per un número per formar un IP.
         //Que no sigui la mateixa que la d'un altre company
-        SrvVelocitats srvVel = new SrvVelocitats(5557, "224.0.10.10");
-        srvVel.runServer();
-        System.out.println("Parat!");
+        Servidor servidor = new Servidor(5557, "224.0.10.10");
+        servidor.runServer();
+        System.out.println("Adios!");
 
     }
 

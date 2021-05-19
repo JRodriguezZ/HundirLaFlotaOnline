@@ -1,13 +1,11 @@
 package elpuig.UDP;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Cliente {
     int port;
@@ -16,7 +14,7 @@ public class Cliente {
     int contador;
     List<Integer> dades;
 
-    public void init() throws IOException {
+    public Cliente() throws IOException {
         port = 5557;
         multicastIP = InetAddress.getByName("224.0.10.10");
         socket  = new MulticastSocket(port);
@@ -27,19 +25,20 @@ public class Cliente {
     public void runClient() throws IOException {
         DatagramPacket packet;
         byte [] receivedData = new byte[1024];
+        boolean continueRunning = true;
 
         //activem la subscripció
         socket.joinGroup(multicastIP);
 
 
         //el client atén el port fins que decideix finalitzar
-        while(true){
+        while(continueRunning){
 
             //creació del paquet per rebre les dades
             packet = new DatagramPacket(receivedData, 1024);
 
             //espera de les dades, màxim 5 segons
-            socket.setSoTimeout(5000);
+            socket.setSoTimeout(10000);
             try{
 
                 //espera de les dades
@@ -48,25 +47,18 @@ public class Cliente {
                 //processament de les dades rebudes i obtenció de la resposta
                 getData(packet.getData(), packet.getLength());
             } catch(SocketTimeoutException e){
-
+                System.out.println("S'ha perdut la connexió amb el servidor.");
+                continueRunning = false;
             }
         }
 
         //es cancel·la la subscripció
-//        socket.leaveGroup(multicastIP);
+        socket.leaveGroup(multicastIP);
+        socket.close();
     }
 
     private void getData(byte[] data, int length) {
 
-        int rebut = ByteBuffer.wrap(data).getInt();
-
-        dades.add(rebut);
-
-        if (dades.size() == 5){
-            int mitjana = (dades.get(0) + dades.get(1) + dades.get(2) + dades.get(3) + dades.get(4)) / 5;
-            System.out.println("Mitjana entre " + dades.get(0) + " " + dades.get(1) + " "  + dades.get(2) + " "  + dades.get(3) + " "  + dades.get(4) + " = "  + mitjana);
-            dades.clear();
-        }
 
     }
 
@@ -78,9 +70,27 @@ public class Cliente {
     }
 
     public static void main(String[] args) throws IOException {
-        Client client = new Client();
-        client.init();
-        client.runClient();
+        Cliente cliente = new Cliente();
+
+        System.out.println(" __   __  __   __  __    _  ______   ___  ______      ___      _______    _______  ___      _______  _______  _______ ");
+        System.out.println("|  | |  ||  | |  ||  |  | ||      | |   ||    _ |    |   |    |   _   |  |       ||   |    |       ||       ||   _   |");
+        System.out.println("|  |_|  ||  | |  ||   |_| ||  _    ||   ||   | ||    |   |    |  |_|  |  |    ___||   |    |   _   ||_     _||  |_|  |");
+        System.out.println("|       ||  |_|  ||       || | |   ||   ||   |_||_   |   |    |       |  |   |___ |   |    |  | |  |  |   |  |       |");
+        System.out.println("|       ||       ||  _    || |_|   ||   ||    __  |  |   |___ |       |  |    ___||   |___ |  |_|  |  |   |  |       |");
+        System.out.println("|   _   ||       || | |   ||       ||   ||   |  | |  |       ||   _   |  |   |    |       ||       |  |   |  |   _   |");
+        System.out.println("|__| |__||_______||_|  |__||______| |___||___|  |_|  |_______||__| |__|  |___|    |_______||_______|  |___|  |__| |__|");
+        System.out.println();
+        System.out.println("Bienvenido al juego de Hundir la Flota Online");
+        System.out.println();
+        System.out.println("1. Jugar");
+        System.out.println("2. Salir");
+
+        Scanner scanner = new Scanner(System.in);
+        int seleccion = scanner.nextInt();
+        switch (seleccion){
+            case 1 -> cliente.runClient();
+            case 2 -> System.exit(1);
+        }
     }
 
 //    socket.joinGroup(multicast_ip);

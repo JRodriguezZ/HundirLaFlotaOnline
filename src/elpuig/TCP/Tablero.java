@@ -1,4 +1,4 @@
-package elpuig;
+package elpuig.TCP;
 
 import java.util.Scanner;
 
