@@ -1,8 +1,9 @@
 package elpuig.UDP;
 
-import java.util.Scanner;
+import java.io.Serializable;
 
-public class Tablero {
+public class Tablero implements Serializable {
+    public static final long serialVersionUID = 1L;
     public int tamanyo = 10;
     public Casilla[][] casillas = new Casilla[tamanyo][tamanyo];
     public int numeroNaves = 12;

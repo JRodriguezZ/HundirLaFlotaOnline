@@ -1,5 +1,7 @@
 package elpuig.UDP;
 
+import java.io.Serializable;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -7,38 +9,22 @@ public class HundirLaFlota {
     public int turno;
     public Tablero tablero = new Tablero();
     public int ganador = 0;
+    public Map<String,Integer> mapJugadors;
+    public int acabats;
+
 
     public void start() {
         turno = 0;
 
         tablero.colocarNaves();
+//        mapJugadors.clear();
 
         imprimirCampoBatalla();
     }
 
-    public void combate() {
+    public HundirLaFlota combate(int disparoX, int disparoY) {
         ++turno;
         System.out.println("TURNO " + turno);
-
-        Scanner scanner = new Scanner(System.in);
-        int disparoX = -1;
-        int disparoY = -1;
-        boolean posicionValida = false;
-
-        //turno J1
-        while(posicionValida == false) {
-            System.out.print("Introduce la coordenada vertical: ");
-            disparoX = scanner.nextInt();
-            System.out.print("Introduce la coordenada horizontal: ");
-            disparoY = scanner.nextInt();
-            System.out.println();
-
-            if (disparoX < 0 || disparoX > (tablero.tamanyo-1) || disparoY < 0 || disparoY > (tablero.tamanyo-1)){
-                System.out.println("Posicion invalida, por favor introduce una posicion válida.");
-            } else {
-                posicionValida = true;
-            }
-        }
 
         if ((disparoX >= 0 && disparoX < tablero.tamanyo) && (disparoY >= 0 && disparoY < tablero.tamanyo)) {
             if (tablero.casillas[disparoX][disparoY].contenido.equals("H")) {
@@ -58,38 +44,13 @@ public class HundirLaFlota {
                 System.out.println("J1: Ese barco ya está hundido...");
             }
         }
-//
-//        //turno J2
-//        try {
-//            TimeUnit.SECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        disparoX = (int) (Math.random() * tablero.tamanyo-1);
-//        disparoY = (int) (Math.random() * tablero.tamanyo-1);
-//
-//        if ((disparoX >= 0 && disparoX < tablero.tamanyo) && (disparoY >= 0 && disparoY < tablero.tamanyo)) {
-//            if (tablero.casillas[disparoX][disparoY].contenido.equals("0")) {
-//                System.out.println("El enemigo a hundido una de tus naves!");
-//                tablero.casillas[disparoX][disparoY].contenido = "x";
-//                --tablero.naves[0];
-//            } else if (tablero.casillas[disparoX][disparoY].contenido.equals("H")) {
-//                System.out.println("El enemigo ha hundido su propia nave!");
-//                tablero.casillas[disparoX][disparoY].contenido = "!";
-//                --tablero.naves[1];
-//            } else if (tablero.casillas[disparoX][disparoY].contenido.equals(" ") || tablero.casillas[disparoX][disparoY].contenido.equals("-") || tablero.casillas[disparoX][disparoY].equals("/")) {
-//                System.out.println("El enemigo ha fallado...");
-//                tablero.casillas[disparoX][disparoY].contenido = "/";
-//            } else if (tablero.casillas[disparoX][disparoY].contenido.equals("!") || tablero.casillas[disparoX][disparoY].contenido.equals("x")) {
-//                System.out.println("El enemigo ha disparado a una nave ya hundida...");
-//            }
-//        }
 
         imprimirCampoBatalla();
         tablero.mostrarNavesRestantes();
         ganador = tablero.comprobarGanador();
 
         gestionarFinPartida();
+        return this;
     }
 
     public void gestionarFinPartida() {
